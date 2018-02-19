@@ -31,6 +31,30 @@ export interface AuthorizationData {
 }
 
 /**
+ * Initialize the spotify player
+ *
+ * `auth` may change freely during runtime. The plugin will handle the
+ * required login / logout processes automatically when a new track is played.
+ *
+ * @param {AuthorizationData} auth Valid authorization data.
+ * @returns {Promise<void>} A promise that resolves when the track starts playing.
+ * @async
+ */
+export function init(auth: AuthorizationData): Promise<void> {
+    if (!auth) {
+        throw new ReferenceError("auth parameter is null");
+    }
+    if (!auth.token) {
+        throw new ReferenceError("token parameter is null");
+    }
+    if (!auth.clientId) {
+        throw new ReferenceError("clientId parameter is null");
+    }
+
+    return exec('init', [auth.token, auth.clientId]);
+}
+
+/**
  * Plays a track by its URI.
  *
  * When `positionMs` is < 0, this function immediately throws an error
