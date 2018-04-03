@@ -101,6 +101,10 @@ export function getPosition(): Promise<number> {
     return exec('getPosition');
 }
 
+export function getState(): Promise<string> {
+    return exec('getState');
+}
+
 /**
  * Pauses playback.
  *

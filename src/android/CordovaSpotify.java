@@ -22,6 +22,7 @@ import android.content.Intent;
 import com.spotify.sdk.android.player.Config;
 import com.spotify.sdk.android.player.ConnectionStateCallback;
 import com.spotify.sdk.android.player.Error;
+import com.spotify.sdk.android.player.Metadata;
 import com.spotify.sdk.android.player.Player;
 import com.spotify.sdk.android.player.PlaybackState;
 import com.spotify.sdk.android.player.Spotify;
@@ -51,6 +52,9 @@ public class CordovaSpotify extends CordovaPlugin {
             return true;
         } else if ("getPosition".equals(action)) {
             this.getPosition(callbackContext);
+            return true;
+        } else if ("getState".equals(action)) {
+            this.getState(callbackContext);
             return true;
         } else if ("play".equals(action)) {
             String trackUri = args.getString(0);
@@ -104,6 +108,60 @@ public class CordovaSpotify extends CordovaPlugin {
         callbackContext.sendPluginResult(res);
     }
 
+    private void getState(final CallbackContext callbackContext) {
+        SpotifyPlayer player = this.player;
+        PluginResult res = null;
+        if (player != null) {
+            PlaybackState state = player.getPlaybackState();
+
+            if (state == null) {
+                String msg = "Received null from SpotifyPlayer.getPlaybackState()!";
+                Log.e(TAG, msg);
+
+                JSONObject descr = this.makeError("unknown", msg);
+                callbackContext.error(descr);
+                return;
+            }
+
+            Metadata meta = player.getMetadata();
+
+            if (meta == null) {
+                String msg = "Received null from SpotifyPlayer.getMetadata()!";
+                Log.e(TAG, msg);
+
+                JSONObject descr = this.makeError("unknown", msg);
+                callbackContext.error(descr);
+                return;
+            }
+
+            if (meta.currentTrack == null) {
+                String msg = "Received null from SpotifyPlayer.getMetadata().currentTrack!";
+                Log.e(TAG, msg);
+
+                JSONObject descr = this.makeError("unknown", msg);
+                callbackContext.error(descr);
+                return;
+            }
+
+            final JSONObject obj = new JSONObject();
+            
+            try {
+                obj.put("position", (float)state.positionMs);
+                obj.put("duration", (float)meta.currentTrack.durationMs);
+            } catch (JSONException e) {
+                return;
+            }
+            
+            res = new PluginResult(PluginResult.Status.OK, obj);
+        } else {
+            final JSONObject obj = new JSONObject();
+            
+            res = new PluginResult(PluginResult.Status.OK, obj);
+        }
+
+        callbackContext.sendPluginResult(res);
+    }
+    
     private void init(
         final CallbackContext callbackContext,
         final String clientId,
@@ -546,4 +604,5 @@ public class CordovaSpotify extends CordovaPlugin {
             return null;
         }
     }
+
 }
